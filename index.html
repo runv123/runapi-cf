@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111827">
+  <title>RunAPI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div>
+          <div class="brand-name">RunAPI</div>
+          <div class="brand-subtitle">Private AI API</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">
+          <span>⌂</span><span>概览</span>
+        </button>
+        <button class="nav-item" data-page="keys">
+          <span>🔑</span><span>API Keys</span>
+        </button>
+        <button class="nav-item" data-page="models">
+          <span>🤖</span><span>模型</span>
+        </button>
+        <button class="nav-item" data-page="playground">
+          <span>⌁</span><span>API 测试</span>
+        </button>
+        <button class="nav-item" data-page="settings">
+          <span>⚙</span><span>设置</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="dot"></span>
+        <span id="connectionText">未连接</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="mobile-brand">RunAPI</div>
+          <h1 id="pageTitle">概览</h1>
+        </div>
+        <button id="logoutBtn" class="button secondary hidden">退出管理</button>
+      </header>
+
+      <section id="loginView" class="view">
+        <div class="login-card">
+          <div class="hero-icon">R</div>
+          <h2>RunAPI</h2>
+          <p>你的私人 AI API 管理控制台</p>
+
+          <label for="apiBaseInput">Cloudflare Worker 地址</label>
+          <input id="apiBaseInput" type="url" placeholder="https://your-worker.workers.dev">
+
+          <label for="adminTokenInput">管理员 Token</label>
+          <input id="adminTokenInput" type="password" placeholder="输入 ADMIN_TOKEN">
+
+          <button id="loginBtn" class="button primary full">连接 RunAPI</button>
+          <p id="loginMessage" class="message"></p>
+          <p class="hint">管理员 Token 仅保存在当前浏览器标签页的会话中。</p>
+        </div>
+      </section>
+
+      <section id="appView" class="view hidden">
+        <div id="dashboardPage" class="page active">
+          <div class="page-intro">
+            <div>
+              <h2>欢迎使用 RunAPI</h2>
+              <p>私人、轻量、OpenAI 兼容的 Cloudflare AI API。</p>
+            </div>
+            <button class="button primary" data-go="playground">开始测试</button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>API Keys</span>
+              <strong id="statKeys">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>正常 Keys</span>
+              <strong id="statActiveKeys">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>可用模型</span>
+              <strong id="statModels">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>总请求次数</span>
+              <strong id="statRequests">0</strong>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>API 地址</h3>
+                <p>第三方客户端使用下面的地址调用 RunAPI。</p>
+              </div>
+              <button class="button secondary small-button" id="copyBaseBtn">复制</button>
+            </div>
+            <code id="baseUrlDisplay">-</code>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>快速开始</h3>
+                <p>创建一个 API Key，然后在 OpenAI-compatible 客户端中使用。</p>
+              </div>
+            </div>
+            <pre id="quickStartCode">Base URL: -
+API Key: 你的 RunAPI Key
+Model: @cf/zai-org/glm-4.7-flash</pre>
+          </div>
+        </div>
+
+        <div id="keysPage" class="page">
+          <div class="page-intro">
+            <div>
+              <h2>API Keys</h2>
+              <p>管理给你自己的应用和客户端使用的密钥。</p>
+            </div>
+            <button id="refreshKeysBtn" class="button secondary">刷新</button>
+          </div>
+
+          <div class="card">
+            <div class="form-grid">
+              <div>
+                <label for="keyName">名称</label>
+                <input id="keyName" placeholder="例如：我的 iPad">
+              </div>
+              <div>
+                <label for="keyPrefix">自定义前缀</label>
+                <input id="keyPrefix" value="sk-run-" placeholder="例如：sk-run-">
+              </div>
+            </div>
+            <button id="createKeyBtn" class="button primary">创建 API Key</button>
+            <p class="hint">只允许字母、数字、下划线和短横线。完整 Key 创建后只显示一次。</p>
+          </div>
+
+          <div id="newKeyCard" class="card success-card hidden">
+            <div class="card-header">
+              <div>
+                <h3>新 API Key</h3>
+                <p>请立即复制并妥善保存。</p>
+              </div>
+              <span class="badge green">仅显示一次</span>
+            </div>
+            <div id="newKeyValue" class="secret-value"></div>
+            <button id="copyNewKeyBtn" class="button primary">复制完整 Key</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>已有 Keys</h3>
+                <p id="keysSummary">正在加载...</p>
+              </div>
+            </div>
+            <div id="keysList" class="list"></div>
+          </div>
+        </div>
+
+        <div id="modelsPage" class="page">
+          <div class="page-intro">
+            <div>
+              <h2>模型</h2>
+              <p>RunAPI 当前允许调用的 Workers AI 模型。</p>
+            </div>
+            <button id="refreshModelsBtn" class="button secondary">刷新</button>
+          </div>
+          <div id="modelsList" class="model-grid"></div>
+        </div>
+
+        <div id="playgroundPage" class="page">
+          <div class="page-intro">
+            <div>
+              <h2>API 测试</h2>
+              <p>使用一个已经创建的 API Key 测试 Chat Completions。</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <label for="testKey">API Key</label>
+            <input id="testKey" type="password" placeholder="sk-run-...">
+
+            <label for="testModel">模型</label>
+            <select id="testModel"></select>
+
+            <label for="testMessage">消息</label>
+            <textarea id="testMessage" rows="7" placeholder="例如：你好，请介绍一下 RunAPI。">你好，请介绍一下 RunAPI。</textarea>
+
+            <div class="row">
+              <label class="checkbox-label">
+                <input id="testStream" type="checkbox">
+                流式输出
+              </label>
+              <button id="sendTestBtn" class="button primary">发送请求</button>
+            </div>
+
+            <div id="testStatus" class="message"></div>
+            <pre id="testOutput" class="output">等待请求...</pre>
+          </div>
+        </div>
+
+        <div id="settingsPage" class="page">
+          <div class="page-intro">
+            <div>
+              <h2>设置</h2>
+              <p>RunAPI 前端连接配置。</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <label for="settingsBaseUrl">Cloudflare Worker 地址</label>
+            <input id="settingsBaseUrl" type="url">
+            <button id="saveSettingsBtn" class="button primary">保存地址</button>
+            <p id="settingsMessage" class="message"></p>
+          </div>
+
+          <div class="card warning-card">
+            <h3>安全提示</h3>
+            <p>这个 GitHub 前端不保存 ADMIN_TOKEN 到仓库。当前版本只在浏览器 sessionStorage 中保存管理员 Token，关闭标签页后会清除。</p>
+            <p>真正的权限验证仍然由 Cloudflare Worker 完成。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>
